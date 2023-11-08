@@ -1,14 +1,26 @@
 {
   "name": "mock-auth-server",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Mock for Open ID Connect base authentication server for testing",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pankajupadhyay29/mock-auth-server"
+  },
+  "homepage": "https://github.com/pankajupadhyay29/mock-auth-server",
+  "bugs": {
+    "url": "https://github.com/pankajupadhyay29/mock-auth-server/issues",
+    "email": "pankajupadhyay29@gmail.com"
+  },
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC",
+  "bin": {
+    "mock-auth-server": "./server.js"
+  },
+  "author": "Pankaj Upadhyay",
+  "license": "GNU GENERAL PUBLIC LICENSE",
   "dependencies": {
     "@faker-js/faker": "8.2.0",
     "cookie-parser": "1.4.6",

@@ -1,3 +1,4 @@
 const common = require('./common');
+const jwtHelper = require('./jwtHelper');
 
-module.exports = { ...common };
+module.exports = { ...common, ...jwtHelper };
