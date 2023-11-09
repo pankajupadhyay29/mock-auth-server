@@ -16,4 +16,8 @@ const getUser = (id) => {
     return users[id];
 }
 
-module.exports = { createUser, getUser };
+const removeUser = (id) => {
+    delete users[id];
+}
+
+module.exports = { createUser, getUser, removeUser };

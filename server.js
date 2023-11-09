@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const utils = require('./utils');
-const { authorize, token, jwks, login } = require('./api/oauth');
+const { authorize, token, jwks, login, logout } = require('./api/oauth');
 
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -44,6 +44,7 @@ utils.populateOptions().then(() => {
     .get((req, res) => {
       res.sendFile(path.join(__dirname, 'html/Login.html'));
     }).post(login);
+  app.route('/oidc/logout').get(logout);
 
   server.listen(options.port, () => {
     console.info(

@@ -21,4 +21,8 @@ const addToken = (user, scope, audience) => {
     return token;
 }
 
-module.exports = { getToken, addToken };
+const removeToken = (code) => {
+    return tokens[code];
+};
+
+module.exports = { getToken, addToken, removeToken };
