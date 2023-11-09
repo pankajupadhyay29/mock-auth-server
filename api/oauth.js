@@ -70,4 +70,3 @@ function setAuthCookie(req, res, sessionID) {
     const cookieFlags = req.secure ? { SameSite: 'lax', httpOnly: true, secure: true } : { SameSite: 'lax' }
     res.cookie('mock_auth_session', sessionID, cookieFlags);
 }
-//response_type=code&scope=openid%20profile%20email&client_id=34R7E2M4bCYq2wo1ttina0LleWRddaVp&redirect_uri=http://allocateui.test.allocate-dev.co.uk:80/signin-oidc?rld_context=DEV~Optima&nonce=38j_tf6ypV7YXUZjZqxNNfx_IY83o56Bk3GVISLnFck&connection=test-aldo-connection&state=0
