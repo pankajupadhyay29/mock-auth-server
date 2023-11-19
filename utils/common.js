@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const fs = require('fs');
 const { getJWTKeys } = require('./jwtHelper');
+const path = require('path');
 
 var options = {};
 
@@ -54,6 +55,10 @@ const populateOptions = async () => {
     options = {};
     options.port = args.p || args.port || 3000;
     options.skipLogin = args.sl || args.skipLogin || false;
+    options.idField = args.id || args.idField || 'sub';
+    options.connectionKey = args.conn || args.connKey || 'connection';
+    const userFilePath = args.user || args.u;
+    if (userFilePath) options.users = path.resolve(userFilePath);
     options.sslKey = args.sslKey;
     options.sslCert = args.sslCert;
     if (!options.sslKey && !!args.keyFile) {
