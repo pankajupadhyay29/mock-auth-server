@@ -1,6 +1,6 @@
 {
   "name": "mock-auth-server",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0",
   "description": "Mock for Open ID Connect base authentication server for testing",
   "repository": {
     "type": "git",
