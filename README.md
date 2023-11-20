@@ -43,6 +43,45 @@ This is a mock server implementation for Open ID Connect base authentication. Th
   This option can be used to provide private key string or private key file path for JWT token private key, in absence of this a key pair will be generated on server start 
 - `publicKey or -pubk: ` -
   This option can be used to provide public key string or private key file path for JWT token private key
+- `idField or id: (default: sub)`-
+  This is where you can pass what will be id field for user, the value passed in login or key in users file will use this field
+- `connKey or conn: (default: connection)`-
+  Which query parameter is used for different connections to differentiate users in the provided json
+- `user or u:`-
+  File path for user json this is optional. The user JSON can be in two formats
+  1 - Single user store
+  In this case the user object will have idField value as key and each key will keep the user object, this user object will be directly used in JWT. The sample is 
+  ```json
+  {
+    "users": {
+        "653921efa9576db066b69787": {
+            "name": "dev",
+            "email": "dev@rldatix.com",
+            "title": "Developer"
+        }
+    }
+  }
+  ```
+  2 - Multiple user store (differentiated base on connKey)
+  For multiple user store each connection (`connKey`) have its user and will be picked up based on the query parameter `connKey`. The sample is 
+  ```json
+  {
+    "test-aldo-connection": {
+        "653921efa9576db066b69787": {
+            "name": "dev",
+            "email": "dev@rldatix.com",
+            "title": "Developer"
+        }
+    },
+    "Username-Password-Authentication": {
+        "60dc8f83dfa3f700740da6a9": {
+            "name": "dev",
+            "email": "dev.demo@rldatix.com",
+            "title": "Developer for Demo"
+        }
+    }
+  }
+  ```
 
 # If you want to contribute 
 Coming soon

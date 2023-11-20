@@ -1,6 +1,6 @@
 {
   "name": "mock-auth-server",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0",
   "description": "Mock for Open ID Connect base authentication server for testing",
   "repository": {
     "type": "git",
@@ -20,7 +20,14 @@
     "mock-auth-server": "./server.js"
   },
   "author": "Pankaj Upadhyay",
-  "license": "GNU GENERAL PUBLIC LICENSE",
+  "license": "GNU General Public License v3.0",
+  "keywords": [
+    "Open ID Connect",
+    "oidc-mock-server",
+    "oauth 2.0",
+    "authentication",
+    "identity"
+  ],
   "dependencies": {
     "@faker-js/faker": "8.2.0",
     "cookie-parser": "1.4.6",
