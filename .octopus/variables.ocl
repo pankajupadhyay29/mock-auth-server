@@ -1,0 +1,21 @@
+variable "base_url" {
+    value "uk.test.cloud.rldatix.com" {
+        environment = ["coreservices-test"]
+    }
+}
+
+variable "container_registry_credentials" {
+    value "container-registry-credentials" {}
+}
+
+variable "dockerServer" {
+    value "docker.allocate-cloud.co.uk:5000" {}
+}
+
+variable "dockerUsername" {
+    value "build-rld" {}
+}
+
+variable "namespace" {
+    value "mock-auth-server" {}
+}

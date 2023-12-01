@@ -1,0 +1,120 @@
+step "create-namespace" {
+    name = "Create namespace"
+    properties = {
+        Octopus.Action.TargetRoles = "kubernetes-cluster"
+    }
+
+    action {
+        action_type = "Octopus.KubernetesRunScript"
+        properties = {
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                $response = kubectl get namespace $namespace
+                [bool] $namespaceExists = $false
+                foreach ($item in $response) {
+                    Write-Output $item
+                    if ($item.contains($namespace)) {
+                        $namespaceExists = $true
+                    }
+                }
+                if ($namespaceExists) {
+                    Write-Output "Namespace $namespace already exists"
+                } else {
+                    Write-Output "Creating namespace $namespace"
+                    kubectl create namespace $namespace
+                }
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "uk-eks-test-workerpool"
+
+        container {
+            feed = "docker"
+            image = "octopusdeploy/worker-tools:6.0.1-ubuntu.22.04"
+        }
+    }
+}
+
+step "update-docker-registry-credentials" {
+    name = "Update docker registry credentials"
+    properties = {
+        Octopus.Action.TargetRoles = "kubernetes-cluster"
+    }
+
+    action {
+        action_type = "Octopus.KubernetesRunScript"
+        properties = {
+            Octopus.Action.Script.ScriptBody = <<-EOT
+                kubectl --namespace $namespace create secret docker-registry $container_registry_credentials --docker-server=$dockerServer --docker-username=$dockerUsername --docker-password=$dockerPassword
+                        
+                EOT
+            Octopus.Action.Script.ScriptSource = "Inline"
+            Octopus.Action.Script.Syntax = "PowerShell"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "uk-eks-test-workerpool"
+
+        container {
+            feed = "docker"
+            image = "octopusdeploy/worker-tools:6.0.1-ubuntu.22.04"
+        }
+    }
+}
+
+step "helm-upgrade-mock-auth-server" {
+    name = "Helm upgrade mock auth server"
+    properties = {
+        Octopus.Action.TargetRoles = "kubernetes-cluster"
+    }
+
+    action {
+        action_type = "Octopus.HelmChartUpgrade"
+        properties = {
+            Octopus.Action.Helm.AdditionalArgs = "--atomic"
+            Octopus.Action.Helm.ClientVersion = "V3"
+            Octopus.Action.Helm.KeyValues = "{\"image.tag\":\"#{Octopus.Action.Package.NuGetPackageVersion}\"}"
+            Octopus.Action.Helm.Namespace = "#{namespace}"
+            Octopus.Action.Helm.ReleaseName = "mock-auth-server"
+            Octopus.Action.Helm.ResetValues = "True"
+            Octopus.Action.Helm.YamlValues = <<-EOT
+                replicaCount: 1
+                image:
+                  repository: docker.allocate-cloud.co.uk:5000/coreservices/mock-auth-server
+                  tag: #{image.tag}
+                  pullPolicy: Always
+                imagePullSecrets:
+                  - name: #{container_registry_credentials}
+                ingress:
+                  enabled: true
+                  className:
+                  annotations:
+                    kubernetes.io/ingress.class: nginx
+                  hosts:
+                    - host: "#{namespace}.#{base_url}"
+                      paths:
+                        - path: /
+                          pathType: Prefix
+                EOT
+            Octopus.Action.Package.DownloadOnTentacle = "False"
+            Octopus.Action.Package.FeedId = "allocate-helm"
+            Octopus.Action.Package.PackageId = "mock-auth-server"
+            OctopusUseBundledTooling = "False"
+        }
+        worker_pool = "uk-eks-test-workerpool"
+
+        container {
+            feed = "docker"
+            image = "octopusdeploy/worker-tools:6.0.1-ubuntu.22.04"
+        }
+
+        packages {
+            acquisition_location = "Server"
+            feed = "allocate-helm"
+            package_id = "mock-auth-server"
+            properties = {
+                SelectionMode = "immediate"
+            }
+        }
+    }
+}
