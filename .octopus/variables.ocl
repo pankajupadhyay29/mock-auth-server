@@ -37,3 +37,9 @@ variable "AWS_ACCOUNT" {
 variable "AWS_REGION" {
     value "eu-west-2" {}
 }
+
+variable "AWS_Account_ID" {
+    value "784244975746" {
+        environment = ["coreservices-test"]
+    }
+}
