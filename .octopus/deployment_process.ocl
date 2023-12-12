@@ -71,6 +71,46 @@ step "helm-upgrade-mock-auth-server" {
     action {
         action_type = "Octopus.HelmChartUpgrade"
         properties = {
+            Octopus.Action.CustomScripts.PreDeploy.ps1 = <<-EOT
+                chmod 600 kubectl-octo.yml
+                
+                $chartPath = "./mock-auth-server/"
+                $secretName = "coreservices/auth-mock-server/users"
+                $Env:AWS_ACCESS_KEY_ID = $OctopusParameters["AWS_ACCOUNT.AccessKey"]
+                $Env:AWS_SECRET_ACCESS_KEY = $OctopusParameters["AWS_ACCOUNT.SecretKey"]
+                $Env:AWS_DEFAULT_REGION = "#{AWS_REGION}"
+                
+                if ($AWS_IAM_ROLE_ARN) {
+                	$Env:AWS_SESSION_TOKEN = ""
+                	Write-Output "Assuming role $AWS_IAM_ROLE_ARN with Key $Env:AWS_ACCESS_KEY_ID"
+                	$creds = aws sts assume-role --region $env:AWS_DEFAULT_REGION --role-arn $AWS_IAM_ROLE_ARN --role-session-name Octopus --query "{AccessKeyId:Credentials.AccessKeyId,SecretAccessKey:Credentials.SecretAccessKey,SessionToken:Credentials.SessionToken}" | ConvertFrom-Json
+                    $Env:AWS_ACCESS_KEY_ID = $creds.AccessKeyId
+                	$Env:AWS_SECRET_ACCESS_KEY = $creds.SecretAccessKey
+                	$Env:AWS_SESSION_TOKEN = $creds.SessionToken
+                    Write-Output "Got new key $Env:AWS_ACCESS_KEY_ID"
+                   
+                }
+                	Write-Output "tocken: $Env:AWS_SESSION_TOKEN"
+                    
+                $AwsAccountId = aws sts get-caller-identity  --region $env:AWS_DEFAULT_REGION --query "Account" --output text
+                if ($AwsAccountId.Trim() -ne $AWS_Account_ID.Trim()) {
+                	Write-Error "ERROR: Script running under AWS AccountId $AwsAccountId should be $AWS_Account_ID"
+                    Exit 1
+                }
+                
+                function get_secret($secretId) {
+                    return aws secretsmanager get-secret-value --region $env:AWS_DEFAULT_REGION --secret-id $secretId --query 'SecretString' --output text
+                }
+                
+                
+                
+                # Definitions
+                
+                $secretOutFile = $chartPath + "Users.json"
+                
+                get_secret($secretName) | Out-file -FilePath $secretOutFile
+                EOT
+            Octopus.Action.EnabledFeatures = "Octopus.Features.CustomScripts"
             Octopus.Action.Helm.AdditionalArgs = "--atomic"
             Octopus.Action.Helm.ClientVersion = "V3"
             Octopus.Action.Helm.KeyValues = "{\"image.tag\":\"#{Octopus.Action.Package.NuGetPackageVersion}\"}"
