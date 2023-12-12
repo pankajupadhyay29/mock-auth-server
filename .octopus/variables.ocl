@@ -19,3 +19,21 @@ variable "dockerUsername" {
 variable "namespace" {
     value "mock-auth-server" {}
 }
+
+variable "AWS_IAM_ROLE_ARN" {
+    value "arn:aws:iam::784244975746:role/octopus-deployer" {
+        environment = ["coreservices-test"]
+    }
+}
+
+variable "AWS_ACCOUNT" {
+    type = "AmazonWebServicesAccount"
+
+    value "allocate-aft-mgmt-prod-aft-terraform-runner" {
+        environment = ["coreservices-test"]
+    }
+}
+
+variable "AWS_REGION" {
+    value "eu-west-2" {}
+}
