@@ -60,3 +60,11 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "chart.fileEnvConfigSettings" -}}
+    {{- print .Release.Name "-appsettings" -}}
+{{- end -}}
+
+{{- define "chart.fileEnvConfigSettingsFile" -}}
+    {{ .Values.fileEnvConfig.fileName }}
+{{- end -}}

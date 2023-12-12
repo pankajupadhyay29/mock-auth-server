@@ -13,10 +13,11 @@ spec:
       {{- include "chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}
       labels:
         {{- include "chart.selectorLabels" . | nindent 8 }}
     spec:
@@ -27,11 +28,19 @@ spec:
       serviceAccountName: {{ include "chart.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      {{- if .Values.fileEnvConfig }}
+        - name: {{ include "chart.fileEnvConfigSettings" . }}
+          configMap:
+            name: {{ include "chart.fileEnvConfigSettings" . }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          # command: ["bin/bash", "-c"]
+          # args: ["sh /etc/nginx/rld-build-scripts/generate_configs.sh && exec nginx -g 'daemon off;'"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -47,6 +56,12 @@ spec:
               port: {{ .Values.deployment.readinessProbePort }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          {{- if .Values.fileEnvConfig }}
+            - name: {{ include "chart.fileEnvConfigSettings" . }}
+              mountPath: "{{ .Values.fileEnvConfig.mountPath }}{{ .Values.fileEnvConfig.fileName }}"
+              subPath: {{ .Values.fileEnvConfig.fileName }}
+          {{- end }}
           env:
             {{- range  .Values.image.env }}
             - name: {{ .name }}

@@ -1,0 +1,11 @@
+{{- if .Values.fileEnvConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.fileEnvConfigSettings" . }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+data:
+{{ include "chart.fileEnvConfigSettingsFile" . | indent 2 }}: |+
+{{ tpl (.Files.Get ( .Values.fileEnvConfig.sourceFileLocation )) . | indent 4 }}
+{{- end }}
