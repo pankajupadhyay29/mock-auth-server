@@ -82,6 +82,7 @@ This is a mock server implementation for Open ID Connect base authentication. Th
     }
   }
   ```
-
+- `redis or ur or useRedis: (default false)`-
+If you want to run multiple server behind load balancer (or multiple pods in Kubernetes) use this option to keep token information in one shared Redis server. Redis information can be provided with environment variables `REDIS_HOST` and `REDIS_PORT`.
 # If you want to contribute 
 Coming soon
