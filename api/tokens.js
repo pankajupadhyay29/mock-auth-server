@@ -10,7 +10,7 @@ const getToken = async (code) => {
         console.log('getting token from redis', code);
         const tokenData = await getData('token', code);
         if (tokenData) {
-            token = JSON.parse(tokenData);
+            token = tokenData;
             _.set(tokens, code, token);
         }
     }
