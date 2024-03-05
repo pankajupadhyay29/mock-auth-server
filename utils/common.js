@@ -67,7 +67,7 @@ const populateOptions = async () => {
     }
     options.keys = await getJWTKeys(args.pvtk || args.privateKey, args.pubk || args.publicKey);
     options.ssl = options.sslKey && options.sslCert;
-
+    options.useRedis = args.ur || args.redis || args.useRedis;
     return Promise.resolve(options);
 }
 

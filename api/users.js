@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const { faker } = require('@faker-js/faker');
 const { getOptions } = require('../utils');
+const { getData, setData, deleteKey } = require('../utils/redis');
 const activeUsers = {};
 
 var userStore = null;
@@ -22,13 +23,12 @@ const getRandomUser = (users, options) => {
 const getUserFromStore = (id, connection, options) => {
     const users = userStore.users || userStore[connection]
     const user = users[id];
-    return !user && options.skipLogin 
+    return !user && options.skipLogin
         ? getRandomUser(users, options)
         : { ...user, [options.idField]: id };
 }
 
-
-const activateUser = (id, connection) => {
+const activateUser = async (id, connection = '') => {
     ensureUserDB();
     const options = getOptions();
     const user = options.users
@@ -39,18 +39,37 @@ const activateUser = (id, connection) => {
             sub: faker.string.uuid(10),
             [options.idField]: id
         };
-    const key = userStore && userStore.users ? user[options.idField] : `${connection}_${user[options.idField]}`;
-    console.log(options.users, user, key);
-    _.set(activeUsers, key, user);
-    return key;
+    const sessionID = faker.string.uuid(10);
+    console.log(options.users, user, sessionID);
+    await addActiveUser(sessionID, user, options);
+    return sessionID;
 }
 
-const getUser = (key) => {
-    return _.get(activeUsers, key);
+const addActiveUser = async (key, user, options) => {
+    _.set(activeUsers, key, user);
+    if (options.useRedis) {
+        console.log('setting user in redis', key, user);
+        await setData('user', key, user);
+    }
 }
+
+const getUser = async (key) => {
+    let user = _.get(activeUsers, key);
+    if (!user && getOptions().useRedis) {
+        console.log('getting user from redis', key);
+        user = await getData('user', key);
+        if (user) {
+            _.set(activeUsers, key, user);
+        }
+    }
+    return user;
+};
 
 const deactivateUser = (key) => {
     delete _.unset(activeUsers, key);
+    if (getOptions().useRedis) {
+        deleteKey('user', key);
+    }
 }
 
 module.exports = { activateUser, getUser, deactivateUser };

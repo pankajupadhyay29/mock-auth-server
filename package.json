@@ -1,6 +1,6 @@
 {
   "name": "mock-auth-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Mock for Open ID Connect base authentication server for testing",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "express": "4.18.2",
     "jsonwebtoken": "9.0.2",
     "lodash": "4.17.21",
-    "pem-jwk": "2.0.0"
+    "pem-jwk": "2.0.0",
+    "redis": "4.6.13"
   }
 }
