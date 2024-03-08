@@ -7,6 +7,7 @@ const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const packageJson = require('./package.json');
 
 const app = express();
 const utils = require('./utils');
@@ -32,10 +33,9 @@ utils.populateOptions().then(() => {
 
   const server = createServer(app);
 
-  app.use((req, res, next) => {
-    console.log(`Request for ${req.originalUrl} and parameters are ${JSON.stringify(req.query)}`);
-    next();
-  })
+  app.route('/version').get((req, res) =>  {
+    res.send(packageJson.version);
+  });
 
   app.route('/authorize').get(authorize);
   app.route('/oauth/token').post(token);

@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const utils = require('../utils');
-const { setData, getData } = require('../utils/redis');
+const { setData, getData, deleteKey } = require('../utils/redis');
 
 const tokens = {};
 
