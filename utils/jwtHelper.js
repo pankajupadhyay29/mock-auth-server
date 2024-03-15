@@ -4,8 +4,8 @@ const pem2jwk = require('pem-jwk').pem2jwk
 const jwt = require('jsonwebtoken');
 
 const getJWTKeys = async (privateKey, publicKey) => {
-    let effectivePrivateKey = privateKey ? getPEMString(privateKey) : privateKey;
-    let effectivePublicKey = publicKey ? getPEMString(publicKey) : publicKey;
+    let effectivePrivateKey = privateKey ? getPEMString(privateKey) : null;
+    let effectivePublicKey = publicKey ? getPEMString(publicKey) : null;
 
     if (effectivePrivateKey === null) {
         const { privateKey, publicKey } = await getKeyPair();
