@@ -40,9 +40,9 @@ This is a mock server implementation for Open ID Connect base authentication. Th
 - `certFile` -
   provide pat for Certificate file to be used for https server
 - `privateKey or -pvtk: ` -
-  This option can be used to provide private key string or private key file path for JWT token private key, in absence of this a key pair will be generated on server start 
+  This option can be used to provide private key string or private key file path or name of environment variable for JWT token private key, in absence of this a key pair will be generated on server start 
 - `publicKey or -pubk: ` -
-  This option can be used to provide public key string or private key file path for JWT token private key
+  This option can be used to provide public key string or public key file path or name of environment variable for JWT token public key, in absence of public key it will be picked from private key provided
 - `idField or id: (default: sub)`-
   This is where you can pass what will be id field for user, the value passed in login or key in users file will use this field
 - `connKey or conn: (default: connection)`-

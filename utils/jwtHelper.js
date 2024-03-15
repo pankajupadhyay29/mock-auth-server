@@ -4,8 +4,8 @@ const pem2jwk = require('pem-jwk').pem2jwk
 const jwt = require('jsonwebtoken');
 
 const getJWTKeys = async (privateKey, publicKey) => {
-    let effectivePrivateKey = getPEMString(privateKey);
-    let effectivePublicKey = getPEMString(publicKey);
+    let effectivePrivateKey = privateKey ? getPEMString(privateKey) : privateKey;
+    let effectivePublicKey = publicKey ? getPEMString(publicKey) : publicKey;
 
     if (effectivePrivateKey === null) {
         const { privateKey, publicKey } = await getKeyPair();
@@ -20,16 +20,23 @@ const getJWTKeys = async (privateKey, publicKey) => {
 };
 
 const getPEMString = (key) => {
-    if (isValidPEM(key)) return key;
-    if (fs.existsSync(key)) {
-        const fileContent = fs.readFileSync(key, 'utf8');
-        if (isValidPEM(fileContent)) return fileContent;
+    if (!key || isValidPEM(key)) return key;
+
+    let effectiveKey = key;
+    if (process.env[key]) {
+        console.log(`Reading ${key} from environment variable`);
+        effectiveKey = process.env[key];
+    } else if (fs.existsSync(key)) {
+        console.log(`Reading ${key} as file content`);
+        effectiveKey = fs.readFileSync(key, 'utf8');
     }
+    if (key !== effectiveKey && isValidPEM(effectiveKey)) return effectiveKey;
+    console.error(`Invalid PEM string for ${key}`);
     return null;
 };
 
 function isValidPEM(pemString) {
-    const pemRegex = /^-----BEGIN [A-Z\s]+-----\r?\n[\/+=a-zA-Z0-9\r\n]*\r?\n-----END [A-Z\s]+-----\r?\n$/;
+    const pemRegex = /^-----BEGIN ([A-Z0-9 ]+)-----\r?\n([\s\S]+?)\r?\n-----END \1-----\r?\n?$/;
     return pemRegex.test(pemString);
 }
 
