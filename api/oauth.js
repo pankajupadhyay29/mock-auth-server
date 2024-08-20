@@ -52,7 +52,7 @@ const logout = async (req, res) => {
     await deactivateUser(sessionID);
     await removeToken(sessionID);
     setAuthCookie(req, res, '');
-    redirectAfterLogout(req);
+    postLogout(req);
 }
 
 async function redirectAfterLogin(data, req, res, user, sessionID) {
@@ -63,13 +63,13 @@ async function redirectAfterLogin(data, req, res, user, sessionID) {
     res.redirect(`${redirect_uri}&${response_type}=${sessionID}`);
 }
 
-async function redirectAfterLogout(req) {
+async function postLogout(req) {
     const redirect_uri = decodeURIComponent(req.query['post_logout_redirect_uri']);
     if (redirect_uri) {
         res.redirect(`${redirect_uri}`);
         return;
     }
-	res.send('You are logged out successfully.');
+    res.send('You are logged out successfully.');
 }
 
 function setAuthCookie(req, res, sessionID) {
