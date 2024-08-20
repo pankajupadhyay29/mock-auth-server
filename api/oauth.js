@@ -63,7 +63,6 @@ async function redirectAfterLogin(data, req, res, user, sessionID) {
     res.redirect(`${redirect_uri}&${response_type}=${sessionID}`);
 }
 
-
 async function postLogout(req, res) {
     const redirect_uri = decodeURIComponent(req.query['post_logout_redirect_uri']);
     if (redirect_uri) {
