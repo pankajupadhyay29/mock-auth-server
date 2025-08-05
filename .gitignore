@@ -131,3 +131,7 @@ dist
 
 # package lock file
 package-lock.json
+
+# local json files
+data/client.json
+data/user.json

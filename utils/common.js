@@ -10,7 +10,8 @@ const getOptions = () => options;
 const _getValueFromString = strVal => {
     try {
         return JSON.parse(strVal);
-    } catch {
+    } catch(e) {
+        console.warn(`Failed to parse string as JSON: ${strVal}. Returning as is.`);
         return strVal;
     }
 };
@@ -50,6 +51,17 @@ const getPrintableString = obj => {
         .valueOf();
 };
 
+const getClients = strClients => {
+    let clients = _getValueFromString(strClients);
+    if (!Array.isArray(clients)) {
+        if (fs.existsSync(clients)) {
+            console.log(`Reading clients from file ${clients}`);
+            clients = JSON.parse(fs.readFileSync(clients, 'utf8'));
+        }
+    }
+    return Array.isArray(clients) ? clients : [{ client_id: 'demo-client', client_secret: 'changeit', aud: 'demo', data: { name: 'Demo Client' } }];
+}
+
 const populateOptions = async () => {
     const args = getArgs(process.argv.slice(2));
     options = {};
@@ -59,6 +71,7 @@ const populateOptions = async () => {
     options.connectionKey = args.conn || args.connKey || 'connection';
     const userFilePath = args.user || args.u;
     if (userFilePath) options.users = path.resolve(userFilePath);
+    options.clients = getClients(args.clients || args.c || process.env.CLIENTS);
     options.sslKey = args.sslKey;
     options.sslCert = args.sslCert;
     if (!options.sslKey && !!args.keyFile) {
@@ -70,7 +83,5 @@ const populateOptions = async () => {
     options.useRedis = args.ur || args.redis || args.useRedis;
     return Promise.resolve(options);
 }
-
-
 
 module.exports = { getOptions, populateOptions, getPrintableString };
