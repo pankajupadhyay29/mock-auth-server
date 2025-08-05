@@ -2,6 +2,35 @@ const utils = require('../utils');
 const { getToken, addToken, removeToken } = require('./tokens');
 const { getUser, activateUser, deactivateUser } = require('./users');
 
+function validateClientCredentials(client_id, client_secret) {
+    const options = utils.getOptions();
+    if (!options.clients) return false;
+    return (
+        Array.isArray(options.clients) &&
+        options.clients.some(
+            (c) => c.client_id === client_id && c.client_secret === client_secret
+        )
+    );
+}
+
+function getClient(client_id) {
+    const options = utils.getOptions();
+    if (!options.clients) return null;
+    return options.clients.find(c => c.client_id === client_id) || null;
+}
+
+async function issueClientCredentialsToken(client_id, scope = "") {
+    const options = utils.getOptions();
+    const client = getClient(client_id);
+    const access_token = utils.generateJWT(client?.data || {}, options.keys.privateKey, client.aud);
+    return {
+        access_token,
+        token_type: 'Bearer',
+        scope,
+        expires_in: 86400
+    };
+}
+
 const authorize = async (req, res) => {
     const options = utils.getOptions();
     const { redirect_uri, response_type, scope, client_id } = req.query;
@@ -19,6 +48,19 @@ const authorize = async (req, res) => {
 };
 
 const token = async (req, res) => {
+    // Support for client_credentials grant
+    if (req.body.grant_type === 'client_credentials') {
+        const { client_id, client_secret, scope = "" } = req.body;
+        if (!validateClientCredentials(client_id, client_secret)) {
+            res.status(401).json({ error: "invalid_client", error_description: "Client authentication failed" });
+            return;
+        }
+        const token = await issueClientCredentialsToken(client_id, scope);
+        res.json(token);
+        return;
+    }
+
+    // Default: handle authorization_code
     const result = await getToken(req.body.code);
     res.send(result);
 }

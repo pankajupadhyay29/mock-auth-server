@@ -59,9 +59,9 @@ const getKeyPair = () => {
     });
 }
 
-const generateJWT = (user, privateKey, audience) => {
+const generateJWT = (data, privateKey, audience) => {
     return jwt.sign(
-        user,
+        data,
         privateKey,
         {
             audience,

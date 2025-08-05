@@ -20,13 +20,43 @@ This is a mock server implementation for Open ID Connect base authentication. Th
   For any get request for login page (redirected via `/authorize`) a html page will be displayed to provide username and password. The user subject can be provided in both username and password (login will fail if both are not matching) and after verification user will be redirected to value provided in `redirect_uri`` with a code (`response_type` field) which can be used to get id token 
 - /oauth/token
   This will return a object containing `access_token, id_token, scope, expires_in, token_type` for the user id provided (code in the request body)
+- **Client Credentials Grant**  
+  You can now obtain a token using the [OAuth2 client credentials grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4):
+
+  ```
+  POST /oauth/token
+  Content-Type: application/x-www-form-urlencoded
+
+  grant_type=client_credentials&client_id=demo-client&client_secret=changeit
+  ```
+  > You can configure valid clients via the `clients` option or the `CLIENTS` environment variable.  
+  > The response includes `access_token`, `expires_in`, and `token_type`. No `id_token` is issued for this grant.
+
 - /.well-known/jwks.json
   This is to get public key in JSON Web Key Set format, so that it can be used to verify tokens
 - /oidc/logout
   The endpoint to be called on logout for clearing the cookie and existing token, user
 
-
 # Available Options
+- `clients:`  
+  Configure valid OAuth2 clients for client credentials grant.  
+  Example:  
+  ```json
+  [
+    {
+        "client_id": "demo-client",
+        "client_secret": "changeit",
+        "aud": "demo",
+        "data": {
+            "realm_access": {
+                "roles": ["demo"]
+            }
+        }
+    }
+  ]
+  ```
+  Pass as a JSON string or path to a json file to the `--clients` CLI argument or via the `CLIENTS` environment variable.
+
 - `port or -p: (default:3000)` -
   To specify the port to which mock server will listen
 - `skipLogin or -sl (default: false)`
