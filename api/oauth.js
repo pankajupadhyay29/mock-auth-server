@@ -22,7 +22,7 @@ function getClient(client_id) {
 async function issueClientCredentialsToken(client_id, scope = "") {
     const options = utils.getOptions();
     const client = getClient(client_id);
-    const access_token = utils.generateJWT(client?.data || {}, options.keys.privateKey, client.aud);
+    const access_token = utils.generateJWT(client?.data || {}, options.keys.privateKey, client?.aud);
     return {
         access_token,
         token_type: 'Bearer',
