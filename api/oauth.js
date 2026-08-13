@@ -34,17 +34,20 @@ async function issueClientCredentialsToken(client_id, scope = "") {
 const authorize = async (req, res) => {
     const options = utils.getOptions();
     const { redirect_uri, response_type, scope, client_id } = req.query;
-    if (options.skipLogin || req.cookies.mock_auth_session) {
-        const sessionID = !req.cookies.mock_auth_session && options.skipLogin
-            ? activateUser('', req.query[options.connectionKey])
-            : req.cookies.mock_auth_session;
+    const sessionIDInRequest = sessionIDFromRequest(req);
+    const connection = req.query[options.connectionKey];
+    console.log('Authorize request:', req.query);
+    if (options.skipLogin || sessionIDInRequest) {
+        const sessionID = !sessionIDInRequest && options.skipLogin
+            ? await activateUser('', connection)
+            : sessionIDInRequest;
         const user = await getUser(sessionID)
         if (user) {
             redirectAfterLogin(req.query, req, res, user, sessionID);
             return;
         }
     }
-    res.redirect(`/login?protocol=oauth2&redirect_uri=${redirect_uri}&response_type=${response_type}&scope=${scope}&client_id=${client_id}`);
+    res.redirect(`/login?protocol=oauth2&redirect_uri=${redirect_uri}&response_type=${response_type}&scope=${scope}&client_id=${client_id}&${options.connectionKey}=${connection}`);
 };
 
 const token = async (req, res) => {
@@ -77,20 +80,22 @@ const jwks = (req, res) => {
 }
 
 const login = async (req, res) => {
+    const options = utils.getOptions();
     const userName = req.body.username;
     const password = req.body.password;
+    const connection = req.query[options.connectionKey] || req.body.connection;
     if (userName === password) {
-        const options = utils.getOptions();
-        const sessionID = await activateUser(userName, req.query[options.connectionKey]);
+        const sessionID = await activateUser(userName, connection);
         const user = await getUser(sessionID);
-        redirectAfterLogin(req.body, req, res, user, sessionID);
+        if(user) redirectAfterLogin(req.body, req, res, user, sessionID);
+        else res.status(401).send('User not found');
     } else {
         res.status(401).send('Incorrect credentials');
     }
 }
 
 const logout = async (req, res) => {
-    const sessionID = req.cookies.mock_auth_session;
+    const sessionID = sessionIDFromRequest(req);
     await deactivateUser(sessionID);
     await removeToken(sessionID);
     setAuthCookie(req, res, '');
@@ -98,11 +103,13 @@ const logout = async (req, res) => {
 }
 
 async function redirectAfterLogin(data, req, res, user, sessionID) {
-    const { client_id, redirect_uri, response_type, scope, connection } = data;
+    const options = utils.getOptions();
+    const { client_id, redirect_uri, response_type, scope } = data;
+    const connection = data[options.connectionKey];
     console.log(client_id, redirect_uri, response_type, scope);
     await addToken(sessionID, user, scope, client_id, connection);
-    setAuthCookie(req, res, sessionID);
-    res.redirect(`${redirect_uri}&${response_type}=${sessionID}`);
+    setAuthCookie(req, res, sessionID, authCookieName(req, connection));
+    res.redirect(`${redirect_uri}&${response_type}=${sessionID}&${options.connectionKey}=${connection}`);
 }
 
 async function postLogout(req, res) {
@@ -114,9 +121,20 @@ async function postLogout(req, res) {
     res.send('You are logged out successfully.');
 }
 
-function setAuthCookie(req, res, sessionID) {
+function authCookieName(req, connection) {
+    const options = utils.getOptions();
+    const conn = connection || req.query[options.connectionKey]
+    console.log('Connection for auth cookie:', conn, options.connectionKey);
+    return `mock_auth_session_${conn}`;
+}
+
+function sessionIDFromRequest(req) {
+    return req.cookies[authCookieName(req)];
+}
+
+function setAuthCookie(req, res, sessionID, cookieName) {
     const cookieFlags = req.secure ? { SameSite: 'lax', httpOnly: true, secure: true } : { SameSite: 'lax' }
-    res.cookie('mock_auth_session', sessionID, cookieFlags);
+    res.cookie(cookieName || authCookieName(req), sessionID, cookieFlags);
 }
 
 module.exports = { authorize, token, jwks, login, logout };

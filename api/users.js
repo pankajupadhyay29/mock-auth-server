@@ -22,13 +22,16 @@ const getRandomUser = (users, options) => {
 
 const getUserFromStore = (id, connection, options) => {
     const users = userStore.users || userStore[connection]
+    if (!users) return null;
     const user = users[id];
     return !user && options.skipLogin
         ? getRandomUser(users, options)
-        : { ...user, [options.idField]: id };
+        : user 
+            ? { ...user, [options.idField]: id }
+            : null;
 }
 
-const activateUser = async (id, connection = '') => {
+const activateUser = async (id, connection) => {
     ensureUserDB();
     const options = getOptions();
     const user = options.users
@@ -39,6 +42,8 @@ const activateUser = async (id, connection = '') => {
             sub: faker.string.uuid(10),
             [options.idField]: id
         };
+    if (!user) return null;
+
     const sessionID = faker.string.uuid(10);
     console.log(options.users, user, sessionID);
     await addActiveUser(sessionID, user, options);
